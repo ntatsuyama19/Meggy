@@ -48,33 +48,21 @@ struct Point
 
 Point p1 = {3,4};
 Point snakeArray[64] = {p1};
-int snakeindex = 0;
 int marker = 1;               //index of the first empty segment of array
 int direction = 0;
+boolean gameOver = false;
 int xapple = random(8);
 int yapple = random(8);
-int speed = 150;
+int speed = 80;
 int b = 0;
-boolean gotApple = true;
 
 void setup()                    // run once, when the sketch starts
 {
   MeggyJrSimpleSetup();      // Required code, line 2 of 2.
-  spawnApple();
   SetAuxLEDs(0);
 }
 
-void spawnApple()
-{
-  do
-  {
-    xapple = (int)random(8);
-    yapple = (int)random(8);
-  }
-  while (!isValid(xapple,yapple));
-  gotApple = false;
-  drawApple();
-}
+
 
 // Checks the direction and updates the x or y value.
 void updateSnake()
@@ -86,7 +74,7 @@ void updateSnake()
   }
   
   //move head
-  if (direction == 0)
+  if (direction == 0)                         //moving up
   {
     snakeArray[0].y = snakeArray[0].y + 1;                     // updates y
     if (snakeArray[0].y > 7)                         // corrects for out-of-bounds
@@ -94,7 +82,7 @@ void updateSnake()
       snakeArray[0].y = 0;                             // change y to 0
     }
   }    
-  if (direction == 90)
+  if (direction == 90)                       //moving right
   {
     snakeArray[0].x = snakeArray[0].x + 1;                     // updates y
     if (snakeArray[0].x > 7)                         // corrects for out-of-bounds
@@ -102,7 +90,7 @@ void updateSnake()
       snakeArray[0].x = 0;                             // change y to 0
     }
   }    
-  if (direction == 180)
+  if (direction == 180)                         //moving down
   {
     snakeArray[0].y = snakeArray[0].y - 1;                     // updates y
     if (snakeArray[0].y < 0)                         // corrects for out-of-bounds
@@ -110,7 +98,7 @@ void updateSnake()
       snakeArray[0].y = 7;                             // change y to 0
     }
   }
-  if (direction == 270)
+  if (direction == 270)                        //moving left
   {
     snakeArray[0].x = snakeArray[0].x - 1;                     // updates y
     if (snakeArray[0].x < 0)                         // corrects for out-of-bounds
@@ -120,41 +108,34 @@ void updateSnake()
   }        
 }
 
-void drawApple()
+void drawApple()                                 //spawn apple
 {
   DrawPx(xapple,yapple,Red);
 }
 
-void drawSnake()
+void drawSnake()                                                    //draw snake 
 {
-  for (int i = 0; i < marker; i++)
-  DrawPx(snakeArray[i].x, snakeArray[i].y, Yellow);           // Draw a dot at x=3, y=4, in yellow.
-}
-
-void checkDeath()
-{
-  for (int i = 1; i <= snakeindex; i++)
+  DrawPx(snakeArray[0].x, snakeArray[0].y, Violet);                  //draw head
+  for (int i = 1; i < marker; i++)
   {
-    if ((xcors[0] == xcors[i]) && (ycors[0] == ycors[i])) gameOver();
+    DrawPx(snakeArray[i].x, snakeArray[i].y, Yellow);           //draw Body in yellow
   }
 }
 
-void levelUp()
+void checkDeath()                                              //checking of hit itself
 {
-  level + 1;
-  for (int x = 8; x > 8; x-=2)
+  for (int i = 1; i < marker; i++)
+  if ((snakeArray[0].x == snakeArray[i].x) && (snakeArray[0].y == snakeArray[i].y))
   {
-    eaten = 8;
-    if (gamespeed > 50) gamespeed == 50;
-    Tone_Start(12345,1234);
-    Tone_Start(11111,1234);
-    Tone_Start(2222,222);
-  }
+    ClearSlate();
+    gameOver = true;
+  }  
 }
 
-void snakeMovement()
+
+void snakeMovement()                             //moving the snake around and corresponding buttons to direction
 {
-  CheckButtonsDown();
+  CheckButtonsPress();
   if (Button_Right)
   {
     direction = 90;
@@ -173,93 +154,78 @@ void snakeMovement()
   }  
 }
 
-void drawSquare(int sidelength)
+void snakeSpeed()                                      //watching snake speed
 {
-  for (int j = 0; j < sidelength; j + 1)
+  CheckButtonsDown();
+  if (Button_A)
   {
-    DrawPx(0,j,Blue);
-    DrawPx(j,0,Blue);
-    DrawPx(7,j,Blue);
-    DrawPx(j,7,Blue);
-    ClearSlate();
-    DisplaySlate();
-    delay(50);            
+    speed = speed - 10;
+  }
+  if (Button_B)
+  {
+    speed = speed + 10;
   }
 }
 
-boolean isValid(int xpos, int ypos)
+void checkEaten()                                                      //looking if apples eaten
 {
-  for (int i = 0; i <= snakeindex; i + 1)
+  if (snakeArray[0].x == xapple && snakeArray[0].y == yapple)
   {
-    if ((xcors[i] == xpos) && (ycors[i] == ypos)) return false;
-  }
-  return true;
+    xapple = random(8);
+    yapple = random(8);
+    b = b * 2 + 1;
+    if (b > 255)
+    {
+      b = 0;
+      Tone_Start(11825,25);
+      marker = marker + 1;
+    }
+  }  
 }
 
-void addSegment()
-{
-  if (snakeindex < 12)
-  {
-    snakeindex = snake index + 1;
-    xcors[snakeindex] = xcors[snakeindex - 1];
-    ycors[snakeindex] = ycors[snakeindex - 1];
-  }
-}
-
-void gameOver()
+void death()                                    //check death
 {
   ClearSlate();
-  while ((Button_A) == 0) && (Button_B) == 0))
+  delay(500);
+  struct Point
   {
-    CheckButtonsDown();
-    for (int i = 0; i < 8; i + 1)
-    {
-      DrawPx(i,0,Red);
-      DrawPx(0,1,Red);
-    }
-    for (int i = 0; i < 8; i + 1)
-    {
-      DrawPx(i,7,Red);
-      DrawPx(7,1,Red);
-    }
-    for (int i = 2; i < 6; i + 1)
-    {
-      DrawPx(i,i,Red);
-    }
-    for (int i = 6; i < 2; i + 1)
-    {
-      DrawPx(i,i,Red);
-    }
-    DisplaySlate();
-  }
+    int x;
+    int y;
+  };
+
+  Point p1 = {3,4};
+  Point snakeArray[64] = {p1};
+  int marker = 1;               //index of the first empty segment of array
+  int direction = 0;
+  boolean gameOver = false;
+  int xapple = random(8);
+  int yapple = random(8);
+  int speed = 80;
+  int b = 0;
+  ClearSlate();
 }
 
 void loop()                     // run over and over again
 {
-
-  updateSnake();
-  drawSnake();
-  drawApple();
-  checkDeath();
-  if ((xcors[0] == xapple) && (ycors[0] == yapple))
+  if (gameOver == false)
   {
-    ToneStart(18232,25);
-    gotApple = true;
-    addSegment;
-    DrawPx(xapple,yapple,Red);
-    if (eaten == 0) eaten = 1;
-    if (eaten > 255) levelUp();
-    else eaten *= 2;
-    SetAuxLEDs(eaten);
-  }
-  DisplaySlate();                  // Write the drawing to the screen.
-  delay(speed);
-  ClearSlate();
-  if (gotApple) spawnApple();
+    updateSnake();
+    drawApple();
+    checkEaten();
+    checkDeath();
+    drawSnake();
+    SetAuxLEDs(b);
+  
+    DisplaySlate();                  // Write the drawing to the screen.
+    delay(speed);
+    ClearSlate();
 
-  snakeMovement();
-  delay(speed);
+    snakeMovement();
+    delay(speed);
+  }
+  else death();
 }
+
 
 
 
